@@ -25,7 +25,7 @@ const regForm = document.getElementById('registerForm')
 //regForm.addEventListener('submit', adduser)
  async function adduser(event) {
     event.preventDefault();
-
+// Henter data fra input-feltene i registreringsskjemaet
     const user = {
         firstName: regForm.firstName.value,
         lastName: regForm.lastName.value,
