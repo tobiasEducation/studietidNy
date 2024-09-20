@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regristrer Aktivitet</title>
+    <link rel="stylesheet" href="styles.css">
+    <script defer src="register_activity.js"></script>
+</head>
+<body>
+
+    <h1>Register Activity</h1>
+
+    <form id="activityForm">
+        <label for="idUser">Bruker ID:</label>
+        <input type="number" id="idUser" name="idUser" required><br>
+
+        <label for="startTime">Start Tid:</label>
+        <input type="datetime-local" id="startTime" name="startTime" required><br>
+
+        <label for="idSubject">Fag ID:</label>
+        <input type="number" id="idSubject" name="idSubject" required><br>
+
+        <label for="idRoom">Rom ID:</label>
+        <input type="number" id="idRoom" name="idRoom" required><br>
+
+        <label for="idStatus">Status ID:</label>
+        <input type="number" id="idStatus" name="idStatus" required><br>
+
+        <label for="duration">Studietid (minutter):</label>
+        <input type="number" id="duration" name="duration" required><br>
+
+        <button type="submit">Regrister Aktivitet</button>
+    </form>
+
+    <div id="success"></div>
+    <div id="error"></div>
+
+</body>
+</html>
