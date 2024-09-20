@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Studietid</title>
+</head>
+<body>
+    <h1>Studietid</h1>
+
+    <div class="container">
+        <h2>Register New User</h2>
+        <form id="registerForm" action="/adduser" method="POST">
+
+            <input type="text" id="firstName" name="firstName" placeholder="Fornavn" required>
+            <input type="text" id="lastName" name="lastName" placeholder="Etternavn" required>
+            <input type="email" id="email" name="email" placeholder="Email" required>
+            <button type="submit">Register</button>
+        </form>
+        <div class="error" id="error"></div>
+        <div class="success" id="success"></div>
+    </div>
+            
+    <script src="./script.js"></script>
+</body>
+</html>

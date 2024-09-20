@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calendar with Valid Dates</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body>
+  <input type="text" id="calendar" placeholder="Select Date">
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const validDates = [
+        "2024-09-10", "2024-09-12", "2024-09-15", "2024-09-20", "2024-09-25"
+      ];
+
+      flatpickr("#calendar", {
+        enable: validDates.map(date => {
+          return new Date(date);
+        }),
+        dateFormat: "Y-m-d"
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>JSON og API</title>
+</head>
+<body>    <!-- Context Menu -->
+    <div id="contextMenu" class="notShow">
+        <ul>
+            <li id="editRow">Rediger</li>
+            <li id="deleteRow">Slett</li>
+        </ul>
+    </div>
+
+    <h1>Person Liste</h1>
+    <table id="personTable"></table>
+    <button id="addPersonBtn">Legg til en Person</button>
+
+
+    <form id="personForm" class="notShow" action="submit">
+        <label for="firstName">Fornavn:</label>
+        <input type="text" id="firstName" name="firstName" required>
+        <label for="lastName">Etternavn:</label>
+        <input type="text" id="lastName" name="lastName" required>
+        <label for="email">E-post:</label>
+        <input type="email" id="email" name="email" required>
+        <label for="alder">Alder:</label>
+        <input type="number" id="age" name="age" required>
+        <button type="submit" id ="submitBtn">Lagre</button>
+         <button type="button" id="cancelBtn">Avbryt</button>
+    </form>
+    <script src="personer.js"></script>
+</body>
+</html>
+

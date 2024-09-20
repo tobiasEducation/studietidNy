@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Person Liste</title>
+    <style>
+        /* Basic styling for the table and context menu */
+        #personTable {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #personTable tr {
+            border-bottom: 1px solid #ccc;
+            cursor: pointer;
+        }
+
+        #contextMenu {
+            display: none;
+            position: absolute;
+            background-color: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            padding: 10px;
+        }
+
+        #contextMenu ul {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        #contextMenu ul li {
+            padding: 8px 12px;
+            cursor: pointer;
+        }
+
+        #contextMenu ul li:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Person Liste</h1>
+    <table id="personTable">
+        <tr><th>Navn</th><th>Alder</th><th>Epost</th></tr>
+    </table>
+    <button id="addPersonBtn">Legg til en Person</button>
+
+    <!-- Context Menu -->
+    <div id="contextMenu">
+        <ul>
+            <li id="editRow">Rediger</li>
+            <li id="deleteRow">Slett</li>
+        </ul>
+    </div>
+
+    <form id="personForm" action="none" style="display:none;">
+        <label for="firstName">Fornavn:</label>
+        <input type="text" id="firstName" name="firstName" required>
+        <label for="lastName">Etternavn:</label>
+        <input type="text" id="lastName" name="lastName" required>
+        <label for="email">E-post:</label>
+        <input type="email" id="email" name="email" required>
+        <label for="age">Alder:</label>
+        <input type="number" id="age" name="age" required>
+        <button type="submit" id="submitBtn">Lagre</button>
+        <button type="button" id="cancelBtn">Avbryt</button>
+    </form>
+
+    <script>
+        const persons = [
+            {
+                "name": "Ola Nordmann",
+                "age": 30,
+                "email": "ola@example.com"
+            },
+            {
+                "name": "Kari Nordmann",
+                "age": 25,
+                "email": "kari@example.com"
+            }
+        ];
+
+        const personTable = document.getElementById('personTable');
+        const addPersonBtn = document.getElementById('addPersonBtn');
+        const personForm = document.getElementById('personForm');
+        const contextMenu = document.getElementById('contextMenu');
+        let selectedRow;
+
+        addPersonBtn.addEventListener('click', addPersonForm);
+
+        personTable.addEventListener('contextmenu', function(event) {
+            event.preventDefault();
+            if (event.target.tagName === 'TD') {
+                selectedRow = event.target.parentElement; // get the selected row
+                contextMenu.style.top = `${event.clientY}px`;
+                contextMenu.style.left = `${event.clientX}px`;
+                contextMenu.style.display = 'block';
+            }
+        });
+
+        document.addEventListener('click', function() {
+            contextMenu.style.display = 'none';
+        });
+
+        document.getElementById('editRow').addEventListener('click', function() {
+            if (selectedRow) {
+                const cells = selectedRow.getElementsByTagName('td');
+                const [firstName, lastName] = cells[0].textContent.split(' ');
+                personForm.firstName.value = firstName;
+                personForm.lastName.value = lastName;
+                personForm.email.value = cells[2].textContent;
+                personForm.age.value = cells[1].textContent;
+
+                // Switch to edit mode
+                personForm.style.display = 'block';
+                addPersonBtn.style.display = 'none';
+                document.getElementById('submitBtn').removeEventListener('click', handleAddPerson);
+                document.getElementById('submitBtn').addEventListener('click', handleEditPerson);
+
+                contextMenu.style.display = 'none';
+            }
+        });
+
+        document.getElementById('deleteRow').addEventListener('click', function() {
+            if (selectedRow) {
+                persons.splice(persons.findIndex(p => p.email === selectedRow.dataset.id), 1);
+                selectedRow.remove();
+                contextMenu.style.display = 'none';
+            }
+        });
+
+        function displayPersonsAsTable() {
+            personTable.innerHTML = '<tr><th>Navn</th><th>Alder</th><th>Epost</th></tr>'; // Clear the table first
+            
+            persons.forEach(person => {
+                const row = document.createElement('tr');
+                row.dataset.id = person.email; 
+                const nameCell = document.createElement('td');
+                nameCell.textContent = person.name;
+                row.appendChild(nameCell);
+                
+                const ageCell = document.createElement('td');
+                ageCell.textContent = person.age;
+                row.appendChild(ageCell);
+                
+                const emailCell = document.createElement('td');
+                emailCell.textContent = person.email;
+                row.appendChild(emailCell);
+                
+                personTable.appendChild(row);
+            });
+        }
+
+        function addPersonForm() {
+            personForm.style.display = 'block';
+            addPersonBtn.style.display = 'none';
+            personForm.reset();
+            document.getElementById('submitBtn').removeEventListener('click', handleEditPerson);
+            document.getElementById('submitBtn').addEventListener('click', handleAddPerson);
+        }
+
+        function handleAddPerson(event) {
+            event.preventDefault();
+            addPerson(
+                `${personForm.firstName.value} ${personForm.lastName.value}`, 
+                personForm.age.value,
+                personForm.email.value
+            );
+            personForm.reset();
+            personForm.style.display = 'none';
+            addPersonBtn.style.display = 'block';
+        }
+
+        function handleEditPerson(event) {
+            event.preventDefault();
+            const person = persons.find(p => p.email === selectedRow.dataset.id);
+            person.name = `${personForm.firstName.value} ${personForm.lastName.value}`;
+            person.age = personForm.age.value;
+            person.email = personForm.email.value;
+
+            personForm.reset();
+            personForm.style.display = 'none';
+            addPersonBtn.style.display = 'block';
+
+            displayPersonsAsTable();
+        }
+
+        function addPerson(name, age, email) {
+            const newPerson = {
+                name: name,
+                age: age,
+                email: email
+            };
+            persons.push(newPerson);
+            displayPersonsAsTable(); // Refresh the table
+        }
+
+        document.getElementById('cancelBtn').addEventListener('click', function() {
+            personForm.reset();
+            personForm.style.display = 'none';
+            addPersonBtn.style.display = 'block';
+        });
+
+        // Initial table display
+        displayPersonsAsTable();
+
+    </script>
+</body>
+</html>
