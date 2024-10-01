@@ -12,16 +12,36 @@
     <div class="container">
         <h2>Register New User</h2>
         <form id="registerForm" action="/adduser" method="POST">
-
             <input type="text" id="firstName" name="firstName" placeholder="Fornavn" required>
             <input type="text" id="lastName" name="lastName" placeholder="Etternavn" required>
             <input type="email" id="email" name="email" placeholder="Email" required>
+                <!-- Roles will be dynamically inserted here -->
+            </select>
             <button type="submit">Register</button>
         </form>
         <div class="error" id="error"></div>
         <div class="success" id="success"></div>
     </div>
-            
+
+    <h2>Velg fag</h2>
+    <select id="subjectSelect">
+        <option value="" disabled selected>Velg fag</option>
+        <!-- Subjects will be dynamically inserted here -->
+    </select>
+
+    <h2>Velg Aktivitet</h2>
+    <select id="activitySelect">
+        <option value="" disabled selected>Velg aktivitet</option>
+        <!-- Activities will be dynamically inserted here -->
+    </select>
+
+    <h2>Legg til Aktivitet</h2>
+    <form id="roomForm">
+        <input type="text" id="roomName" name="activityName" placeholder="Activity Name" required>
+        <button type="submit" id="addActivityButton">Add Activity</button>
+    </form>
+    <div class="activity-success" id="roomSuccess"></div>
+
     <script src="./script.js"></script>
 </body>
 </html>

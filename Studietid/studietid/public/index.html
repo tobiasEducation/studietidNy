@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studietid</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="profile">
+            <img src="profile.jpg" alt="Profile" class="profile-pic">
+            <div class="profile-info">
+                <h1>Tobias Høyerholt Langhelle</h1>
+                <p>Elev</p>
+            </div>
+        </div>
+        <nav>
+            <a href="#" class="nav-link">Studietid</a>
+            <a href="nystudietime.html" class="nav-link">+ Ny Studietime</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="status">
+            <p>Du har <span class="highlight">0</span> godkjente timer.</p>
+        </section>
+
+        <section class="study-hours">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Dato</th>
+                        <th>Lengde</th>
+                        <th>Rom</th>
+                        <th>Fag</th>
+                        <th>Status</th>
+                        <th>Lærer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="6" class="no-data">Ingen studietimer har blitt lagd ennå.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Arial, sans-serif;
+}
+
+body {
+    background-color: #f5f5f5;
+    color: #333;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: #fff;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+}
+
+.profile-pic {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-right: 15px;
+}
+
+.profile-info h1 {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.profile-info p {
+    font-size: 14px;
+    color: #777;
+}
+
+nav {
+    display: flex;
+    align-items: center;
+}
+
+.nav-link {
+    margin-left: 20px;
+    text-decoration: none;
+    color: #007bff;
+    font-size: 16px;
+}
+
+.nav-link:hover {
+    text-decoration: underline;
+}
+
+main {
+    padding: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.status {
+    background-color: #fff;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.highlight {
+    color: green;
+    font-weight: bold;
+}
+
+.study-hours table {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.study-hours th, .study-hours td {
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #eaeaea;
+}
+
+.no-data {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+}
+
+footer {
+    text-align: center;
+    padding: 10px;
+    background-color: #f5f5f5;
+    border-top: 1px solid #eaeaea;
+    margin-top: 20px;
+}
+
+    </style>
+
+    <footer>
+        <p>Amalie Skram vgs. Vestland fylkeskommune</p>
+    </footer>
+</body>
+</html>

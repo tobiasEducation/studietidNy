@@ -12,71 +12,17 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(staticPath, 'app.html'));
 });
 
+// Improved email validation
 function checkValidEmailFormat(email) {
-    let parts = email.split('@');
-
-    // Email should have exactly one "@" symbol
-    if (parts.length !== 2) {
-        return false;
-    }
-
-    let localPart = parts[0];
-    let domainPart = parts[1];
-
-    if (localPart.length === 0 || domainPart.length === 0) {
-        return false;
-    }
-
-    if (!domainPart.includes('.')) {
-        return false;
-    }
-
-    let domainParts = domainPart.split('.');
-
-    if (domainParts.length < 2) {
-        return false;
-    }
-
-    let domainName = domainParts[0];
-    let domainExtension = domainParts[1];
-
-    if (!domainName || !domainExtension) {
-        return false;
-    }
-
-    if (domainExtension.length < 2) {
-        return false;
-    }
-
-    if (localPart.startsWith('.') || localPart.endsWith('.')) {
-        return false;
-    }
-
-    if (domainName.startsWith('-') || domainName.endsWith('-')) {
-        return false;
-    }
-
-    return true;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
 }
 
+// Check if email already exists in the DB
 function checkEmailExists(email) {
-    let sql = db.prepare("select count(*)  as count from user where email = ?");
+    let sql = db.prepare("SELECT COUNT(*) AS count FROM user WHERE email = ?");
     let result = sql.get(email);
-    console.log("result.count", result);
-    if (result.count > 0) {
-        console.log("Email already exists");
-        return false;
-    }
-    return true;
-}
-
-function checkEmailregex(email) {
-    const emailRegex = /^[^\s@\.][^\s@]*@[^\s@]+\.[^\s@]+$/;
-    let result = emailRegex.test(email);
-
-    if (!result) {
-        return false;
-    }
+    return result.count === 0;
 }
 
 app.post('/adduser', (req, res) => {
@@ -86,7 +32,7 @@ app.post('/adduser', (req, res) => {
     if (!checkValidEmailFormat(email)) {
         return res.json({ error: 'Invalid email format.' });
     } else if (!checkEmailExists(email)) {
-        res.redirect('/app.html?errorMsg=EmailExist');
+        return res.json({ error: 'Email already exists.' });
     } else {
         const newUser = addUser(firstName, lastName, 2, 0, email);
 
@@ -98,6 +44,7 @@ app.post('/adduser', (req, res) => {
     }
 });
 
+// Function to insert a new user into the DB
 function addUser(firstName, lastName, idRole, isAdmin, email) {
     const sql = db.prepare(
         "INSERT INTO user (firstName, lastName, idRole, isAdmin, email) VALUES (?, ?, ?, ?, ?)"
@@ -114,6 +61,7 @@ function addUser(firstName, lastName, idRole, isAdmin, email) {
     return rows[0];
 }
 
+// Get all users
 app.get('/getusers/', (req, res) => {
     console.log('/getusers/');
 
@@ -125,6 +73,24 @@ app.get('/getusers/', (req, res) => {
     console.log("users.length", users.length);
 
     res.send(users);
+});
+
+// Get all subjects
+app.get('/getsubjects/', (req, res) => {
+    console.log('/getsubjects/');
+
+    const sql = db.prepare('SELECT name FROM subject');
+    let data = sql.all();
+    console.log("data.length", data.length);
+
+    res.send(data);
+});
+
+// Fetch activities
+app.get('/getactivities/', (req, res) => {
+    console.log("Fetching activities...");
+    const activities = db.prepare('SELECT * FROM activity').all();
+    res.json(activities);
 });
 
 // New route to add activity to the database
@@ -159,7 +125,9 @@ app.post('/addactivity', (req, res) => {
     }
 });
 
+// Serve static files
 app.use(express.static(staticPath));
+
 app.listen(3000, () => {
     console.log('Server is running on http://localhost:3000');
 });
