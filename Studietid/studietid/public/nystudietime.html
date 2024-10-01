@@ -11,8 +11,8 @@
         <h1>Studietime</h1>
         <form action="#">
             <div class="form-group">
-                <label for="dato">Dato</label>
-                <input type="date" id="dato" value="2024-09-25" disabled>
+                <label for="dateSelector">Dato</label>
+                <input type="date" id="dateSelector" name="dateSelector" class="form-control" value="2024-09-25">
             </div>
 
             <div class="form-group">
@@ -29,24 +29,21 @@
                 </div>
             </div>
 
-            <div class="form-group">
+            <div class="form-group" bis_skin_checked="1">
                 <label for="rom">Rom</label>
-                <select id="rom">
-                    <option value="" disabled selected>Velg rom...</option>
-                    <option value="rom1">Rom 1</option>
-                    <option value="rom2">Rom 2</option>
+                <select id="roomDropdown" class="room-select">
+                    <option value="">Velg rom...</option>
                 </select>
             </div>
 
 
 
-            <div class="form-group">
+            <div class="form-group" bis_skin_checked="1">
                 <label for="fag">Fag</label>
-                <select id="fag">
-                    <option value="" disabled selected>Velg fag...</option>
-                    <option value="fag1">Matematikk</option>
-                    <option value="fag2">Norsk</option>
+                <select id="subjectDropdown" class="subject-select">
+                    <option value="">Velg fag...</option>
                 </select>
+                <div id="subjectDebug" style="display: none;"></div>
             </div>
 
             <div class="form-group">
@@ -152,7 +149,88 @@ button:hover {
     background-color: #0056b3;
 }
 
+#subjectDropdown {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+}
+#subjectDropdown option {
+    padding: 8px;
+}
+
+.subject-select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    appearance: auto; /* This ensures the dropdown arrow is visible */
+}
+
+.subject-select option {
+    padding: 8px;
+}
+
+.subject-select {
+    display: block !important;
+    opacity: 1 !important;
+    position: static !important;
+}
     </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const subjectDropdown = document.getElementById('subjectDropdown');
+      const roomDropdown = document.getElementById('roomDropdown');
+
+      function populateDropdown(dropdown, data) {
+        let optionsHtml = `<option value="">Velg ${dropdown.id === 'subjectDropdown' ? 'fag' : 'rom'}...</option>`;
+        data.forEach(item => {
+          optionsHtml += `<option value="${item.id}">${item.name}</option>`;
+        });
+        dropdown.innerHTML = optionsHtml;
+      }
+
+      function fetchAndPopulate(endpoint, dropdown) {
+        fetch(endpoint)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (Array.isArray(data)) {
+              populateDropdown(dropdown, data);
+            } else {
+              console.error(`Unexpected data format for ${endpoint}:`, data);
+            }
+          })
+          .catch(error => {
+            console.error(`Error fetching data for ${endpoint}:`, error);
+            dropdown.innerHTML = `<option value="">Error loading ${dropdown.id === 'subjectDropdown' ? 'subjects' : 'rooms'}</option>`;
+          });
+      }
+
+      fetchAndPopulate('/getsubjects', subjectDropdown);
+      fetchAndPopulate('/getrooms', roomDropdown);
+    });
+
+    const dateSelector = document.getElementById('dateSelector');
+    
+    // Set default date to today if not already set
+    if (!dateSelector.value) {
+      const today = new Date();
+      const yyyy = today.getFullYear();
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const dd = String(today.getDate()).padStart(2, '0');
+      dateSelector.value = `${yyyy}-${mm}-${dd}`;
+    }
+
+    // Optional: Add an event listener to do something when the date changes
+    dateSelector.addEventListener('change', function() {
+      console.log('Selected date:', this.value);
+      // You can add more functionality here if needed
+    });
+    </script>
 
 </body>
 </html>

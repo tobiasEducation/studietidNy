@@ -1,40 +1,154 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Regristrer Aktivitet</title>
-    <link rel="stylesheet" href="register_styles.css">
-    <script defer src="register_activity.js"></script>
+    <title>Ny Studietime</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="container">
+        <h1>Studietime</h1>
+        <form action="#">
+            <div class="form-group">
+                <label for="dato">Dato</label>
+                <input type="date" id="dato" value="2024-09-25" disabled>
+            </div>
 
-    <h1>Regristrer Aktivitet</h1>
+            <div class="form-group">
+                <label for="aktiviteter">Aktiviteter</label>
+                <div class="radio-group">
+                    <input type="radio" id="activity1" name="activity" checked>
+                    <label for="activity1">16:00 Fleksibel studietid</label>
+                    <span class="activity-label">Fleksibel studietid</span>
+                </div>
+                <div class="radio-group">
+                    <input type="radio" id="activity2" name="activity">
+                    <label for="activity2">15:00 Fleksibel studietid</label>
+                    <span class="activity-label">Fleksibel studietid</span>
+                </div>
+            </div>
 
-    <form id="activityForm">
-        <label for="idUser">Bruker ID:</label>
-        <input type="number" id="idUser" name="idUser" required><br>
+            <div class="form-group">
+                <label for="rom">Rom</label>
+                <select id="rom">
+                    <option value="" disabled selected>Velg rom...</option>
+                    <option value="rom1">Rom 1</option>
+                    <option value="rom2">Rom 2</option>
+                </select>
+            </div>
 
-        <label for="startTime">Start Tid:</label>
-        <input type="datetime-local" id="startTime" name="startTime" required><br>
+            <div class="form-group">
+                <label for="fag">Fag</label>
+                <select id="fag">
+                    <option value="" disabled selected>Velg fag...</option>
+                </select>
+            </div>
 
-        <label for="idSubject">Fag ID:</label>
-        <input type="number" id="idSubject" name="idSubject" required><br>
+            <div class="form-group">
+                <label for="mal">Mål</label>
+                <textarea id="mal" rows="4" placeholder="Skriv mål..."></textarea>
+            </div>
 
-        <label for="idRoom">Rom ID:</label>
-        <input type="number" id="idRoom" name="idRoom" required><br>
+            <button type="submit">Registrer</button>
+        </form>
+    </div>
 
-        <label for="idStatus">Status ID:</label>
-        <input type="number" id="idStatus" name="idStatus" required><br>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
 
-        <label for="duration">Studietid (minutter):</label>
-        <input type="number" id="duration" name="duration" required><br>
+        body {
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
-        <button type="submit">Regrister Aktivitet</button>
-    </form>
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            width: 400px;
+        }
 
-    <div id="success"></div>
-    <div id="error"></div>
+        h1 {
+            margin-bottom: 20px;
+            font-size: 22px;
+        }
 
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 14px;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input[type="date"],
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #eaeaea;
+            border-radius: 5px;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .radio-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .radio-group label {
+            margin-right: 10px;
+            font-size: 14px;
+        }
+
+        .activity-label {
+            background-color: #48c774;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: auto;
+        }
+
+        textarea {
+            resize: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+
+    <script src="script.js"></script> <!-- Include your script here -->
 </body>
 </html>

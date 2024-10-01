@@ -92,7 +92,26 @@ async function fetchSubjects() {
 }
 
 async function fetchActivities() {
-    return await fetchDataFromAPI('/getactivities/');
+    fetch('http://localhost:3000/getactivities')
+        .then(response => response.json())
+        .then(data => {
+            console.log('Fetched activities:', data);
+            displayActivities(data);
+        })
+        .catch(error => {
+            console.error('Error fetching activities:', error);
+        });
+}
+
+function displayActivities(activities) {
+    const activityList = document.getElementById('activityList');
+    activityList.innerHTML = '';
+
+    activities.forEach(activity => {
+        const li = document.createElement('li');
+        li.textContent = `User ${activity.idUser} - ${activity.startTime} - Duration: ${activity.duration} minutes`;
+        activityList.appendChild(li);
+    });
 }
 
 async function fetchRoles() {
@@ -214,10 +233,16 @@ app.get('/getsubjects/', (req, res) => {
 });
 
 // Fetch activities
-app.get('/getactivities/', (req, res) => {
-    console.log("Fetching activities...");
-    const activities = db.prepare('SELECT * FROM activity').all();
-    res.json(activities);
+app.get('/getactivities', (req, res) => {
+    const query = 'SELECT * FROM activity';
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Error fetching activities:', err);
+            res.status(500).json({ error: 'Error fetching activities' });
+            return;
+        }
+        res.json(results);
+    });
 });
 
 // Fetch roles

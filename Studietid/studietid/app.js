@@ -1,12 +1,30 @@
-const sqlite3 = require('better-sqlite3');
+const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const db = sqlite3('./studietid.db', { verbose: console.log });
+const fs = require('fs');
+const dbPath = path.join(__dirname, 'studietid.db');
+console.log('Database path:', dbPath);
+
+if (fs.existsSync(dbPath)) {
+    console.log('Database file exists');
+} else {
+    console.error('Database file does not exist at:', dbPath);
+}
+
+const db = new sqlite3.Database('./studietid.db', (err) => {
+    if (err) {
+        console.error('Error opening database:', err.message);
+    } else {
+        console.log('Connected to the SQLite database.');
+    }
+});
 const express = require('express');
 const app = express();
+const cors = require('cors');
 
 const staticPath = path.join(__dirname, 'public');
 app.use(express.urlencoded({ extended: true })); // To parse urlencoded parameters
 app.use(express.json()); // To parse JSON bodies
+app.use(cors());
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(staticPath, 'app.html'));
@@ -62,35 +80,32 @@ function addUser(firstName, lastName, idRole, isAdmin, email) {
 }
 
 // Get all users
-app.get('/getusers/', (req, res) => {
-    console.log('/getusers/');
-
-    const sql = db.prepare(
-        'SELECT user.id as userid, firstname, lastname, role.name as role ' +
-        'FROM user INNER JOIN role ON user.idrole = role.id'
-    );
-    let users = sql.all();
-    console.log("users.length", users.length);
-
-    res.send(users);
+app.get('/getusers', (req, res) => {
+    console.log("Fetching users from database...");
+    db.all("SELECT * FROM user", [], (err, rows) => {
+        if (err) {
+            console.error("Error fetching users:", err.message);
+            return res.status(500).json({ success: false, error: "Error fetching users", details: err.message });
+        }
+        console.log("Users fetched:", rows);
+        res.json({
+            success: true,
+            users: rows
+        });
+    });
 });
 
 // Get all subjects
-app.get('/getsubjects/', (req, res) => {
-    console.log('/getsubjects/');
-
-    const sql = db.prepare('SELECT name FROM subject');
-    let data = sql.all();
-    console.log("data.length", data.length);
-
-    res.send(data);
-});
-
-// Fetch activities
-app.get('/getactivities/', (req, res) => {
-    console.log("Fetching activities...");
-    const activities = db.prepare('SELECT * FROM activity').all();
-    res.json(activities);
+app.get('/getsubjects', (req, res) => {
+    console.log("Fetching subjects from database...");
+    db.all("SELECT * FROM subject", [], (err, rows) => {
+        if (err) {
+            console.error("Error fetching subjects:", err.message);
+            return res.status(500).json({ error: "Error fetching subjects" });
+        }
+        console.log("Subjects fetched:", rows);
+        res.json(rows);  // Directly send the array of subjects
+    });
 });
 
 // New route to add activity to the database
@@ -128,6 +143,41 @@ app.post('/addactivity', (req, res) => {
 // Serve static files
 app.use(express.static(staticPath));
 
+// GET route for activities
+app.get('/getactivities', (req, res) => {
+    console.log("Fetching activities from database...");
+    db.all("SELECT * FROM activity", [], (err, rows) => {
+        if (err) {
+            console.error("Error fetching activities:", err.message);
+            return res.status(500).json({ success: false, error: "Error fetching activities", details: err.message });
+        }
+        console.log("Activities fetched:", rows);
+        res.json({
+            success: true,
+            activities: rows
+        });
+    });
+});
+
 app.listen(3000, () => {
     console.log('Server is running on http://localhost:3000');
 });
+
+app.get('/user', (req, res) => {
+    // This will redirect /user to /getusers
+    res.redirect('/getusers');
+});
+
+app.get('/getrooms', (req, res) => {
+    console.log("Fetching rooms from database...");
+    db.all("SELECT * FROM room", [], (err, rows) => {
+        if (err) {
+            console.error("Error fetching rooms:", err.message);
+            return res.status(500).json({ error: "Error fetching rooms" });
+        }
+        console.log("Rooms fetched:", rows);
+        res.json(rows);
+    });
+});
+
+
