@@ -47,6 +47,45 @@
         </section>
     </main>
 
+    <script>
+        async function loadActivities() {
+            try {
+                const response = await fetch('/getactivities');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const data = await response.json();
+                const activities = data.activities; // Access the activities array
+                console.log('Activities:', activities);
+
+                const tbody = document.querySelector('.study-hours tbody');
+                tbody.innerHTML = ''; // Clear existing rows
+
+                if (activities.length === 0) {
+                    console.log('No activities found');
+                    tbody.innerHTML = '<tr><td colspan="6" class="no-data">Ingen studietimer har blitt lagd ennå.</td></tr>';
+                } else {
+                    activities.forEach(activity => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${activity.startTime}</td>
+                            <td>${activity.duration} min</td> <!-- Updated to use duration -->
+                            <td>${activity.idRoom}</td>
+                            <td>${activity.idSubject}</td>
+                            <td>${activity.status}</td>
+                            <td>${activity.idUser}</td>
+                        `;
+                        tbody.appendChild(row);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading activities:', error);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadActivities);
+    </script>
+
     <style>
         * {
     margin: 0;
