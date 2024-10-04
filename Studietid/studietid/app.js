@@ -5,16 +5,16 @@ const dbPath = path.join(__dirname, 'studietid.db');
 console.log('Database path:', dbPath);
 
 if (fs.existsSync(dbPath)) {
-    console.log('Database file exists');
+    console.log('Database filen eksisterer');
 } else {
-    console.error('Database file does not exist at:', dbPath);
+    console.error('Database filen eksisterer ikke med:', dbPath);
 }
 
 const db = new sqlite3.Database('./studietid.db', (err) => {
     if (err) {
-        console.error('Error opening database:', err.message);
+        console.error('Feil ved å åpne databasen:', err.message);
     } else {
-        console.log('Connected to the SQLite database.');
+        console.log('Koblet til databasen.');
     }
 });
 const express = require('express');
@@ -160,7 +160,7 @@ app.get('/getactivities', (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log('Server is running on http://localhost:3000');
+    console.log('Serveren kjører på http://localhost:3000');
 });
 
 app.get('/user', (req, res) => {

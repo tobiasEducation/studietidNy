@@ -9,7 +9,8 @@
 <body>
     <div class="container">
         <h1>Studietime</h1>
-        <form action="#">
+        <div id="statusMessage" style="display: none; margin-bottom: 10px; padding: 10px; border-radius: 5px;"></div>
+        <form id="studyTimeForm">
             <div class="form-group">
                 <label for="dateSelector">Dato</label>
                 <input type="date" id="dateSelector" name="dateSelector" class="form-control" value="2024-09-25">
@@ -174,6 +175,11 @@ button:hover {
     opacity: 1 !important;
     position: static !important;
 }
+
+#statusMessage {
+    text-align: center;
+    font-weight: bold;
+}
     </style>
 
     <script>
@@ -230,7 +236,80 @@ button:hover {
       console.log('Selected date:', this.value);
       // You can add more functionality here if needed
     });
-    </script>
+
+    const form = document.getElementById('studyTimeForm');
+    const statusMessage = document.getElementById('statusMessage');
+
+    form.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const dateSelector = document.getElementById('dateSelector');
+        const activity = document.querySelector('input[name="activity"]:checked');
+        const roomDropdown = document.getElementById('roomDropdown');
+        const subjectDropdown = document.getElementById('subjectDropdown');
+        const goalTextarea = document.getElementById('mal');
+
+        // Modify the date and time formatting
+        const selectedDate = new Date(dateSelector.value + 'T00:00:00');
+        const startTime = activity ? activity.nextElementSibling.textContent.split(' ')[0] : '';
+        const [hours, minutes] = startTime.split(':');
+        selectedDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+        // Adjust for timezone offset
+        const timezoneOffset = selectedDate.getTimezoneOffset();
+        selectedDate.setMinutes(selectedDate.getMinutes() - timezoneOffset);
+
+        const formattedStartTime = selectedDate.toISOString().slice(0, 19).replace('T', ' ');
+
+        const formData = {
+            idUser: 1, 
+            date: selectedDate.toISOString().split('T')[0],
+            startTime: formattedStartTime,
+            idRoom: roomDropdown.value,
+            idSubject: subjectDropdown.value,
+            idStatus: 1, 
+            goal: goalTextarea.value,
+            duration: 60 
+        };
+
+        console.log('Sending data:', formData);
+
+        fetch('/addactivity', {  
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(`HTTP error! status: ${response.status}, message: ${text}`);
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            showStatusMessage('Studietime registrert!', 'success');
+            form.reset();
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            showStatusMessage('Feil ved registrering. Prøv igjen.', 'error');
+        });
+    });
+
+    function showStatusMessage(message, type) {
+        statusMessage.textContent = message;
+        statusMessage.style.display = 'block';
+        statusMessage.style.backgroundColor = type === 'success' ? '#4CAF50' : '#f44336';
+        statusMessage.style.color = 'white';
+        setTimeout(() => {
+            statusMessage.style.display = 'none';
+        }, 3000);
+    }
+</script>
 
 </body>
 </html>
