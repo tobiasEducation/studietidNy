@@ -11,7 +11,9 @@
     "better-sqlite3": "^11.2.1",
     "cors": "^2.8.5",
     "express": "^4.19.2",
+    "express-session": "^1.18.1",
     "path": "^0.12.7",
+    "session": "^0.1.0",
     "sqlite3": "^5.1.7"
   },
   "description": ""

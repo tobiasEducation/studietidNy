@@ -172,7 +172,7 @@ app.get('/getrooms', (req, res) => {
     console.log("Fetching rooms from database...");
     db.all("SELECT * FROM room", [], (err, rows) => {
         if (err) {
-            console.error("Error fetching rooms:", err.message);
+            console.error("Error fetching rooms:", err.message);h
             return res.status(500).json({ error: "Error fetching rooms" });
         }
         console.log("Rooms fetched:", rows);
