@@ -1,10 +1,12 @@
-const sqlite3 = require('sqlite3').verbose();
+const express = require('express');
 const path = require('path');
+const sqlite3 = require('better-sqlite3');
 const fs = require('fs');
+
+const app = express();
+global.db = sqlite3('./studietid.db', { verbose: console.log });
 const dbPath = path.join(__dirname, 'studietid.db');
 console.log('Database path:', dbPath);
-
-
 
 if (fs.existsSync(dbPath)) {
     console.log('Database filen eksisterer');
@@ -12,15 +14,6 @@ if (fs.existsSync(dbPath)) {
     console.error('Database filen eksisterer ikke med:', dbPath);
 }
 
-const db = new sqlite3.Database('./studietid.db', (err) => {
-    if (err) {
-        console.error('Feil ved å åpne databasen:', err.message);
-    } else {
-        console.log('Koblet til databasen.');
-    }
-});
-const express = require('express');
-const app = express();
 const cors = require('cors');
 const session = require('express-session'); // Legg til denne linjen
 const bcrypt = require('bcrypt'); // Legg til denne linjen
@@ -50,7 +43,7 @@ function checkValidEmailFormat(email) {
 
 // Check if email already exists in the DB
 function checkEmailExists(email) {
-    let sql = db.prepare("SELECT COUNT(*) AS count FROM user WHERE email = ?");
+    let sql = global.db.prepare("SELECT COUNT(*) AS count FROM user WHERE email = ?");
     let result = sql.get(email);
     return result.count === 0;
 }
@@ -60,12 +53,12 @@ async function addUser(firstName, lastName, idRole, isAdmin, email, password) {
     const saltRounds = 10; // Antall salt-runder for hashing
     const hashedPassword = await bcrypt.hash(password, saltRounds); // Hash passordet
 
-    const sql = db.prepare(
+    const sql = global.db.prepare(
         "INSERT INTO user (firstName, lastName, idRole, isAdmin, email, password) VALUES (?, ?, ?, ?, ?, ?)"
     );
     const info = sql.run(firstName, lastName, idRole, isAdmin, email, hashedPassword); // Lagre hashet passord
 
-    const selectSql = db.prepare(
+    const selectSql = global.db.prepare(
         'SELECT user.id as userid, firstname, lastname, role.name as role ' +
         'FROM user INNER JOIN role ON user.idrole = role.id WHERE user.id = ?'
     );
@@ -97,7 +90,7 @@ app.post('/adduser', async (req, res) => {
 // Get all users
 app.get('/getusers', (req, res) => {
     console.log("Fetching users from database...");
-    db.all("SELECT * FROM user", [], (err, rows) => {
+    global.db.all("SELECT * FROM user", [], (err, rows) => {
         if (err) {
             console.error("Error fetching users:", err.message);
             return res.status(500).json({ success: false, error: "Error fetching users", details: err.message });
@@ -113,7 +106,7 @@ app.get('/getusers', (req, res) => {
 // Get all subjects
 app.get('/getsubjects', (req, res) => {
     console.log("Fetching subjects from database...");
-    db.all("SELECT * FROM subject", [], (err, rows) => {
+    global.db.all("SELECT * FROM subject", [], (err, rows) => {
         if (err) {
             console.error("Error fetching subjects:", err.message);
             return res.status(500).json({ error: "Error fetching subjects" });
@@ -134,16 +127,16 @@ app.post('/addactivity', (req, res) => {
 
     try {
         // Foreign key checks for user, subject, room, and status
-        const userExists = db.prepare("SELECT 1 FROM user WHERE id = ?").get(idUser);
-        const subjectExists = db.prepare("SELECT 1 FROM subject WHERE id = ?").get(idSubject);
-        const roomExists = db.prepare("SELECT 1 FROM room WHERE id = ?").get(idRoom);
-        const statusExists = db.prepare("SELECT 1 FROM status WHERE id = ?").get(idStatus);
+        const userExists = global.db.prepare("SELECT 1 FROM user WHERE id = ?").get(idUser);
+        const subjectExists = global.db.prepare("SELECT 1 FROM subject WHERE id = ?").get(idSubject);
+        const roomExists = global.db.prepare("SELECT 1 FROM room WHERE id = ?").get(idRoom);
+        const statusExists = global.db.prepare("SELECT 1 FROM status WHERE id = ?").get(idStatus);
 
         if (!userExists || !subjectExists || !roomExists || !statusExists) {
             return res.json({ error: 'Invalid foreign key values. Ensure user, subject, room, and status exist.' });
         }
 
-        const sql = db.prepare(
+        const sql = global.db.prepare(
             "INSERT INTO activity (idUser, startTime, idSubject, idRoom, idStatus, duration) VALUES (?, ?, ?, ?, ?, ?)"
         );
         sql.run(idUser, startTime, idSubject, idRoom, idStatus, duration);
@@ -161,7 +154,7 @@ app.use(express.static(staticPath));
 // GET route for activities
 app.get('/getactivities', (req, res) => {
     console.log("Fetching activities from database...");
-    db.all("SELECT * FROM activity", [], (err, rows) => {
+    global.db.all("SELECT * FROM activity", [], (err, rows) => {
         if (err) {
             console.error("Error fetching activities:", err.message);
             return res.status(500).json({ success: false, error: "Error fetching activities", details: err.message });
@@ -184,7 +177,7 @@ app.get('/user', (req, res) => {
 
 app.get('/getrooms', (req, res) => {
     console.log("Fetching rooms from database...");
-    db.all("SELECT * FROM room", [], (err, rows) => {
+    global.db.all("SELECT * FROM room", [], (err, rows) => {
         if (err) {
             console.error("Error fetching rooms:", err.message);h
             return res.status(500).json({ error: "Error fetching rooms" });
@@ -197,7 +190,6 @@ app.get('/getrooms', (req, res) => {
 // Simulere en database av brukere med hash-verdi for passord
 // Legg inn denne hashete passordet for en av brukerne i databasen 
 // password: '$2b$10$OaYrsjfSOxIlRl3l6brlTe4erojrTxjgsYSzUNF.uCa9Ny9XMmXoS' 
-//          '$2b$10$OaYrsjfSOxIlRl3l6brlTe4erojrTxjgsYSzUNF.uCa9Ny9XMmXoS'
 // Hash av "Passord123"
 
 // Rute for innlogging
@@ -208,24 +200,24 @@ app.post('/login', async (req, res) => {
         return res.status(400).send('Both email and password are required.');
     }
 
-    console.log('Login attempt for email:', email);
-
-    // Fetch the user from the database
-    const sql = db.prepare("SELECT * FROM user WHERE email = ?");
-    const user = sql.get(email);
-
-    if (!user) {
-        console.error('No user found with that email.');
-        return res.status(401).send('Ugyldig e-post eller passord');
-    }
-
-    console.log('User fetched from DB:', user);
-
     try {
+        // Fetch the user from the database
+        const sql = global.db.prepare("SELECT * FROM user WHERE email = ?");
+        const user = sql.get(email);
+        console.log('Login attempt for email:', email);
+
+        if (!user) {
+            console.error('No user found with that email.');
+            return res.status(401).send('Ugyldig e-post eller passord');
+        }
+
+        console.log('User fetched from database:', user);
+
+        // Compare the provided password with the hashed password from the database
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
             req.session.loggedIn = true;
-            req.session.username = user.firstname;  // Assuming you have a `firstname` field
+            req.session.username = user.firstname;  // Assuming user har `firstname`-feltet
             return res.send('Innlogging vellykket!');
         } else {
             console.error('Incorrect password.');
@@ -236,6 +228,7 @@ app.post('/login', async (req, res) => {
         return res.status(500).send('Intern serverfeil');
     }
 });
+
 
 
 // Rute for utlogging
