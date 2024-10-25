@@ -3,81 +3,32 @@ fetchData();
 
 async function fetchData() {
     const rooms = await fetchRooms();
-    populateRooms(rooms);
+    populateOptions('roomSelect', rooms);
     
     const subjects = await fetchSubjects();
-    populateSubjects(subjects);
+    populateOptions('subjectSelect', subjects);
 
     const activities = await fetchActivities();
-    populateActivities(activities);
+    populateOptions('activitySelect', activities);
 
     const roles = await fetchRoles();
-    populateRoles(roles);
+    populateOptions('roleSelect', roles);
 
     const statuses = await fetchStatuses();
-    populateStatuses(statuses);
+    populateOptions('statusSelect', statuses);
 
     const users = await fetchUsers();
-    populateUsers(users);
+    populateOptions('userSelect', users);
 }
 
-// Functions to populate UI elements with data
-function populateRooms(rooms) {
-    const select = document.getElementById('roomSelect');
-    rooms.forEach(room => {
+// Generic function to populate UI elements with data
+function populateOptions(selectId, items) {
+    const select = document.getElementById(selectId);
+    select.innerHTML = ''; // Clear existing options
+    items.forEach(item => {
         const option = document.createElement('option');
-        option.value = room.id;
-        option.textContent = room.name;
-        select.appendChild(option);
-    });
-}
-
-function populateSubjects(subjects) {
-    const select = document.getElementById('subjectSelect');
-    subjects.forEach(subject => {
-        const option = document.createElement('option');
-        option.value = subject.id;
-        option.textContent = subject.name;
-        select.appendChild(option);
-    });
-}
-
-function populateActivities(activities) {
-    const select = document.getElementById('activitySelect');
-    activities.forEach(activity => {
-        const option = document.createElement('option');
-        option.value = activity.id;
-        option.textContent = activity.name;
-        select.appendChild(option);
-    });
-}
-
-function populateRoles(roles) {
-    const select = document.getElementById('roleSelect');
-    roles.forEach(role => {
-        const option = document.createElement('option');
-        option.value = role.id;
-        option.textContent = role.name;
-        select.appendChild(option);
-    });
-}
-
-function populateStatuses(statuses) {
-    const select = document.getElementById('statusSelect');
-    statuses.forEach(status => {
-        const option = document.createElement('option');
-        option.value = status.id;
-        option.textContent = status.name;
-        select.appendChild(option);
-    });
-}
-
-function populateUsers(users) {
-    const select = document.getElementById('userSelect');
-    users.forEach(user => {
-        const option = document.createElement('option');
-        option.value = user.id;
-        option.textContent = `${user.firstName} ${user.lastName}`;
+        option.value = item.id;
+        option.textContent = item.name || `${item.firstName} ${item.lastName}`; // Handle users
         select.appendChild(option);
     });
 }
@@ -92,26 +43,7 @@ async function fetchSubjects() {
 }
 
 async function fetchActivities() {
-    fetch('http://localhost:3000/getactivities')
-        .then(response => response.json())
-        .then(data => {
-            console.log('Fetched activities:', data);
-            displayActivities(data);
-        })
-        .catch(error => {
-            console.error('Error fetching activities:', error);
-        });
-}
-
-function displayActivities(activities) {
-    const activityList = document.getElementById('activityList');
-    activityList.innerHTML = '';
-
-    activities.forEach(activity => {
-        const li = document.createElement('li');
-        li.textContent = `User ${activity.idUser} - ${activity.startTime} - Duration: ${activity.duration} minutes`;
-        activityList.appendChild(li);
-    });
+    return await fetchDataFromAPI('/getactivities'); // Now consistent with error handling
 }
 
 async function fetchRoles() {
@@ -126,7 +58,7 @@ async function fetchUsers() {
     return await fetchDataFromAPI('/getusers/');
 }
 
-// Helper function to fetch data from API and handle errors
+// Helper function for API calls with error handling
 async function fetchDataFromAPI(url) {
     try {
         let response = await fetch(url);
@@ -134,7 +66,7 @@ async function fetchDataFromAPI(url) {
         return data;
     } catch (error) {
         console.error('Error fetching data:', error);
-        return [];
+        return []; // Return empty array on error
     }
 }
 

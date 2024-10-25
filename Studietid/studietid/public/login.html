@@ -5,17 +5,14 @@
     <meta charset="UTF-8">
     
 </head>
-<body>
+<form action="/login" method="POST">
+    <label for="username">Brukernavn:</label>
+    <input type="text" id="email" name="email" required>
     
-    <div class="login-container">
-     
-        <img src="https://kunst.medialog.no/@@site-logo/Amalie%20skram%20liten.png" alt="Logo" class="logo">
-        <a href="index.html">
-        <button class="login-button">Logg inn</button>
-    </a>
-        <H6>[din bruker]@iskule.no 
-        
-        </H6>
-    </div>
+    <label for="password">Passord:</label>
+    <input type="password" id="password" name="password" required>
+    
+    <button type="submit">Logg inn</button>
+  </form>
 </body>
 </html>

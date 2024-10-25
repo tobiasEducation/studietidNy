@@ -4,6 +4,8 @@ const fs = require('fs');
 const dbPath = path.join(__dirname, 'studietid.db');
 console.log('Database path:', dbPath);
 
+
+
 if (fs.existsSync(dbPath)) {
     console.log('Database filen eksisterer');
 } else {
@@ -20,11 +22,21 @@ const db = new sqlite3.Database('./studietid.db', (err) => {
 const express = require('express');
 const app = express();
 const cors = require('cors');
+const session = require('express-session'); // Legg til denne linjen
+const bcrypt = require('bcrypt'); // Legg til denne linjen
 
 const staticPath = path.join(__dirname, 'public');
 app.use(express.urlencoded({ extended: true })); // To parse urlencoded parameters
 app.use(express.json()); // To parse JSON bodies
 app.use(cors());
+
+// Konfigurere session
+app.use(session({
+    secret: 'hemmelig_nøkkel',
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Setcleaert til true hvis du bruker HTTPS
+}));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(staticPath, 'app.html'));
@@ -43,31 +55,15 @@ function checkEmailExists(email) {
     return result.count === 0;
 }
 
-app.post('/adduser', (req, res) => {
-    const { firstName, lastName, email } = req.body;
+// Funksjon for å opprette en ny bruker med hashet passord
+async function addUser(firstName, lastName, idRole, isAdmin, email, password) {
+    const saltRounds = 10; // Antall salt-runder for hashing
+    const hashedPassword = await bcrypt.hash(password, saltRounds); // Hash passordet
 
-    // Validate email format and check if email already exists
-    if (!checkValidEmailFormat(email)) {
-        return res.json({ error: 'Invalid email format.' });
-    } else if (!checkEmailExists(email)) {
-        return res.json({ error: 'Email already exists.' });
-    } else {
-        const newUser = addUser(firstName, lastName, 2, 0, email);
-
-        if (!newUser) {
-            return res.json({ error: 'Failed to register user.' });
-        }
-
-        res.sendFile(path.join(staticPath, 'app.html'));
-    }
-});
-
-// Function to insert a new user into the DB
-function addUser(firstName, lastName, idRole, isAdmin, email) {
     const sql = db.prepare(
-        "INSERT INTO user (firstName, lastName, idRole, isAdmin, email) VALUES (?, ?, ?, ?, ?)"
+        "INSERT INTO user (firstName, lastName, idRole, isAdmin, email, password) VALUES (?, ?, ?, ?, ?, ?)"
     );
-    const info = sql.run(firstName, lastName, idRole, isAdmin, email);
+    const info = sql.run(firstName, lastName, idRole, isAdmin, email, hashedPassword); // Lagre hashet passord
 
     const selectSql = db.prepare(
         'SELECT user.id as userid, firstname, lastname, role.name as role ' +
@@ -78,6 +74,25 @@ function addUser(firstName, lastName, idRole, isAdmin, email) {
 
     return rows[0];
 }
+
+app.post('/adduser', async (req, res) => {
+    const { firstName, lastName, email, password } = req.body;
+
+    // Validate email format and check if email already exists
+    if (!checkValidEmailFormat(email)) {
+        return res.json({ error: 'Invalid email format.' });
+    } else if (!checkEmailExists(email)) {
+        return res.json({ error: 'Email already exists.' });
+    } else {
+        const newUser = await addUser(firstName, lastName, 2, 0, email, password); // Pass på passordet
+
+        if (!newUser) {
+            return res.json({ error: 'Failed to register user.' });
+        }
+
+        res.sendFile(path.join(staticPath, 'app.html'));
+    }
+});
 
 // Get all users
 app.get('/getusers', (req, res) => {
@@ -160,11 +175,10 @@ app.get('/getactivities', (req, res) => {
 });
 
 app.listen(3000, () => {
-    console.log('Serveren kjører på http://localhost:3000');
+    console.log('Serveren kjører p http://localhost:3000');
 });
 
 app.get('/user', (req, res) => {
-    // This will redirect /user to /getusers
     res.redirect('/getusers');
 });
 
@@ -180,4 +194,65 @@ app.get('/getrooms', (req, res) => {
     });
 });
 
+// Simulere en database av brukere med hash-verdi for passord
+// Legg inn denne hashete passordet for en av brukerne i databasen 
+// password: '$2b$10$OaYrsjfSOxIlRl3l6brlTe4erojrTxjgsYSzUNF.uCa9Ny9XMmXoS' 
+//          '$2b$10$OaYrsjfSOxIlRl3l6brlTe4erojrTxjgsYSzUNF.uCa9Ny9XMmXoS'
+// Hash av "Passord123"
 
+// Rute for innlogging
+app.post('/login', async (req, res) => {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).send('Both email and password are required.');
+    }
+
+    console.log('Login attempt for email:', email);
+
+    // Fetch the user from the database
+    const sql = db.prepare("SELECT * FROM user WHERE email = ?");
+    const user = sql.get(email);
+
+    if (!user) {
+        console.error('No user found with that email.');
+        return res.status(401).send('Ugyldig e-post eller passord');
+    }
+
+    console.log('User fetched from DB:', user);
+
+    try {
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (isMatch) {
+            req.session.loggedIn = true;
+            req.session.username = user.firstname;  // Assuming you have a `firstname` field
+            return res.send('Innlogging vellykket!');
+        } else {
+            console.error('Incorrect password.');
+            return res.status(401).send('Ugyldig e-post eller passord');
+        }
+    } catch (error) {
+        console.error('Error during password comparison:', error);
+        return res.status(500).send('Intern serverfeil');
+    }
+});
+
+
+// Rute for utlogging
+app.get('/logout', (req, res) => {
+    req.session.destroy((err) => {
+        if (err) {
+            return res.status(500).send('Feil under utlogging');
+        }
+        res.send('Du er nå logget ut.');
+    });
+});
+
+// Beskyttet rute som krever at brukeren er innlogget
+app.get('/dashboard', (req, res) => {
+    if (req.session.loggedIn) {
+        res.send(`Velkommen, ${req.session.username}!`);
+    } else {
+        res.status(403).send('Du må være logget inn for å se denne siden.');
+    }
+});
