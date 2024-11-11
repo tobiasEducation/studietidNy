@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const sqlite3 = require('better-sqlite3');
 const fs = require('fs');
+const bcrypt = require('bcrypt'); 
+const session = require('express-session'); 
 
 const app = express();
 global.db = sqlite3('./studietid.db', { verbose: console.log });
@@ -14,28 +16,24 @@ if (fs.existsSync(dbPath)) {
     console.error('Database filen eksisterer ikke med:', dbPath);
 }
 
-const cors = require('cors');
-const session = require('express-session'); // Legg til denne linjen
-const bcrypt = require('bcrypt'); // Legg til denne linjen
-
 const staticPath = path.join(__dirname, 'public');
-app.use(express.urlencoded({ extended: true })); // To parse urlencoded parameters
-app.use(express.json()); // To parse JSON bodies
-app.use(cors());
+app.use(express.urlencoded({ extended: true })); 
+app.use(express.json()); 
+
 
 // Konfigurere session
 app.use(session({
     secret: 'hemmelig_nøkkel',
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false } // Setcleaert til true hvis du bruker HTTPS
+    cookie: { secure: false } 
 }));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(staticPath, 'app.html'));
 });
 
-// Improved email validation
+// email validation
 function checkValidEmailFormat(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -48,10 +46,9 @@ function checkEmailExists(email) {
     return result.count === 0;
 }
 
-// Funksjon for å opprette en ny bruker med hashet passord
 async function addUser(firstName, lastName, idRole, isAdmin, email, password) {
-    const saltRounds = 10; // Antall salt-runder for hashing
-    const hashedPassword = await bcrypt.hash(password, saltRounds); // Hash passordet
+    const saltRounds = 10; 
+    const hashedPassword = await bcrypt.hash(password, saltRounds); 
 
     const sql = global.db.prepare(
         "INSERT INTO user (firstName, lastName, idRole, isAdmin, email, password) VALUES (?, ?, ?, ?, ?, ?)"
@@ -71,13 +68,14 @@ async function addUser(firstName, lastName, idRole, isAdmin, email, password) {
 app.post('/adduser', async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
-    // Validate email format and check if email already exists
+    // Email finnes?
     if (!checkValidEmailFormat(email)) {
-        return res.json({ error: 'Invalid email format.' });
+        return res.json({ error: 'Feil format.' });
     } else if (!checkEmailExists(email)) {
-        return res.json({ error: 'Email already exists.' });
+        return res.json({ error: 'Email finnes allerede.' });
+
     } else {
-        const newUser = await addUser(firstName, lastName, 2, 0, email, password); // Pass på passordet
+        const newUser = await addUser(firstName, lastName, 2, 0, email, password); 
 
         if (!newUser) {
             return res.json({ error: 'Failed to register user.' });
@@ -90,37 +88,31 @@ app.post('/adduser', async (req, res) => {
 // Get all users
 app.get('/getusers', (req, res) => {
     console.log("Fetching users from database...");
-    global.db.all("SELECT * FROM user", [], (err, rows) => {
-        if (err) {
-            console.error("Error fetching users:", err.message);
-            return res.status(500).json({ success: false, error: "Error fetching users", details: err.message });
-        }
-        console.log("Users fetched:", rows);
-        res.json({
-            success: true,
-            users: rows
-        });
+    const rows = global.db.prepare("SELECT * FROM user").all(); 
+    if (!rows) {
+        return res.status(500).json({ success: false, error: "Error fetching users" });
+    }
+    console.log("Users fetched:", rows);
+    res.json({
+        success: true,
+        users: rows
     });
 });
 
-// Get all subjects
 app.get('/getsubjects', (req, res) => {
     console.log("Fetching subjects from database...");
-    global.db.all("SELECT * FROM subject", [], (err, rows) => {
-        if (err) {
-            console.error("Error fetching subjects:", err.message);
-            return res.status(500).json({ error: "Error fetching subjects" });
-        }
-        console.log("Subjects fetched:", rows);
-        res.json(rows);  // Directly send the array of subjects
-    });
+    const sql = global.db.prepare("SELECT * FROM subject");
+    const rows = sql.all(); 
+    if (!rows) {
+        return res.status(500).json({ error: "Error fetching subjects" });
+    }
+    console.log("Subjects fetched:", rows);
+    res.json(rows);  
 });
 
-// New route to add activity to the database
 app.post('/addactivity', (req, res) => {
     const { idUser, startTime, idSubject, idRoom, idStatus, duration } = req.body;
 
-    // Validate input
     if (!idUser || !startTime || !idSubject || !idRoom || !idStatus || !duration) {
         return res.json({ error: 'All fields are required.' });
     }
@@ -154,16 +146,15 @@ app.use(express.static(staticPath));
 // GET route for activities
 app.get('/getactivities', (req, res) => {
     console.log("Fetching activities from database...");
-    global.db.all("SELECT * FROM activity", [], (err, rows) => {
-        if (err) {
-            console.error("Error fetching activities:", err.message);
-            return res.status(500).json({ success: false, error: "Error fetching activities", details: err.message });
-        }
-        console.log("Activities fetched:", rows);
-        res.json({
-            success: true,
-            activities: rows
-        });
+    // Changed to use .all() correctly
+    const rows = global.db.prepare("SELECT * FROM activity").all();
+    if (!rows) {
+        return res.status(500).json({ success: false, error: "Error fetching activities" });
+    }
+    console.log("Activities fetched:", rows);
+    res.json({
+        success: true,
+        activities: rows
     });
 });
 
@@ -177,14 +168,14 @@ app.get('/user', (req, res) => {
 
 app.get('/getrooms', (req, res) => {
     console.log("Fetching rooms from database...");
-    global.db.all("SELECT * FROM room", [], (err, rows) => {
-        if (err) {
-            console.error("Error fetching rooms:", err.message);h
-            return res.status(500).json({ error: "Error fetching rooms" });
-        }
-        console.log("Rooms fetched:", rows);
-        res.json(rows);
-    });
+    // Use prepare to create a statement and then call .all() on it
+    const sql = global.db.prepare("SELECT * FROM room");
+    const rows = sql.all(); // Correctly fetch all rows
+    if (!rows) {
+        return res.status(500).json({ error: "Error fetching rooms" });
+    }
+    console.log("Rooms fetched:", rows);
+    res.json(rows);
 });
 
 // Simulere en database av brukere med hash-verdi for passord
@@ -213,12 +204,17 @@ app.post('/login', async (req, res) => {
 
         console.log('User fetched from database:', user);
 
-        // Compare the provided password with the hashed password from the database
         const isMatch = await bcrypt.compare(password, user.password);
         if (isMatch) {
             req.session.loggedIn = true;
-            req.session.username = user.firstname;  // Assuming user har `firstname`-feltet
-            return res.send('Innlogging vellykket!');
+            req.session.username = user.firstname; 
+            req.session.isAdmin = user.isAdmin; 
+
+            if (user.isAdmin === 1) {
+                return res.send('Logget inn som admin'); 
+            } else {
+                return res.redirect('/index.html'); 
+            }
         } else {
             console.error('Incorrect password.');
             return res.status(401).send('Ugyldig e-post eller passord');
@@ -230,8 +226,6 @@ app.post('/login', async (req, res) => {
 });
 
 
-
-// Rute for utlogging
 app.get('/logout', (req, res) => {
     req.session.destroy((err) => {
         if (err) {
@@ -248,4 +242,12 @@ app.get('/dashboard', (req, res) => {
     } else {
         res.status(403).send('Du må være logget inn for å se denne siden.');
     }
+});
+
+app.get('/getactivitiesz', (req, res) => {
+    console.log("Fetching Database");
+    const sql = global.db.prepare("SELECT * FROM activityz");
+    const rows = sql.all(); 
+    console.log("Aktivitet fetched", rows);
+    res.json(rows);  
 });
