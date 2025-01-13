@@ -68,7 +68,7 @@ async function addUser(firstName, lastName, idRole, isAdmin, email, password) {
 app.post('/adduser', async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
-    // Email finnes?
+    // Email finnes
     if (!checkValidEmailFormat(email)) {
         return res.json({ error: 'Feil format.' });
     } else if (!checkEmailExists(email)) {
@@ -157,6 +157,8 @@ app.get('/getactivities', (req, res) => {
         activities: rows
     });
 });
+
+
 
 app.listen(3000, () => {
     console.log('Serveren kjører p http://localhost:3000');

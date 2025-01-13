@@ -43,7 +43,7 @@ async function fetchSubjects() {
 }
 
 async function fetchActivities() {
-    return await fetchDataFromAPI('/getactivities'); // Now consistent with error handling
+    return await fetchDataFromAPI('/getactivities'); 
 }
 
 async function fetchRoles() {
@@ -58,7 +58,6 @@ async function fetchUsers() {
     return await fetchDataFromAPI('/getusers/');
 }
 
-// Helper function for API calls with error handling
 async function fetchDataFromAPI(url) {
     try {
         let response = await fetch(url);
@@ -70,10 +69,8 @@ async function fetchDataFromAPI(url) {
     }
 }
 
-// User registration form submission
 const regForm = document.getElementById('registerForm');
-// Uncomment to add event listener
-// regForm.addEventListener('submit', addUser);
+
 
 async function addUser(event) {
     event.preventDefault();
@@ -112,15 +109,15 @@ async function addUser(event) {
 document.getElementById('roomForm').addEventListener('submit', addActivity);
 
 async function addActivity(event) {
-    event.preventDefault(); // Prevent form submission
+    event.preventDefault(); // koding koding koding koding koding koding koding koding koding
 
-    const activityName = document.getElementById('roomName').value; // Replace roomName with activity name input ID
+    const activityName = document.getElementById('roomName').value; 
 
     try {
         const response = await fetch('/addactivity', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name: activityName }) // Sending the activity name to the API
+            body: JSON.stringify({ name: activityName }) 
         });
 
         const data = await response.json();
@@ -129,7 +126,7 @@ async function addActivity(event) {
             document.getElementById('roomSuccess').innerText = data.error;
         } else {
             document.getElementById('roomSuccess').innerText = 'Activity added successfully.';
-            populateActivityOption(activityName, data.id); // Assuming the API returns the activity id
+            populateActivityOption(activityName, data.id); 
         }
     } catch (error) {
         document.getElementById('roomSuccess').innerText = 'Error adding activity.';
@@ -137,7 +134,6 @@ async function addActivity(event) {
     }
 }
 
-// Function to populate newly added activity to the dropdown list
 function populateActivityOption(name, id) {
     const select = document.getElementById('activitySelect');
     const option = document.createElement('option');
@@ -148,23 +144,20 @@ function populateActivityOption(name, id) {
 
 const express = require('express');
 const app = express();
-const db = require('better-sqlite3')('studietid.db'); // Assuming the SQLite database is named 'studietid.db'
+const db = require('better-sqlite3')('studietid.db'); 
 
-app.use(express.json()); // Middleware to parse JSON request bodies
+app.use(express.json()); 
 
-// Fetch rooms
 app.get('/getrooms/', (req, res) => {
     const rooms = db.prepare('SELECT * FROM room').all();
     res.json(rooms);
 });
 
-// Fetch subjects
 app.get('/getsubjects/', (req, res) => {
     const subjects = db.prepare('SELECT * FROM subjects').all();
     res.json(subjects);
 });
 
-// Fetch activities
 app.get('/getactivities', (req, res) => {
     const query = 'SELECT * FROM activity';
     db.query(query, (err, results) => {
